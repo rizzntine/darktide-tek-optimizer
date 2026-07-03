@@ -137,6 +137,9 @@ try {
 # ------------------------------------------------------------
 Write-Stage "Installing DirectStorage runtime"
 
+$tempDir   = Join-Path $env:TEMP "darktide_mods"
+New-Item $tempDir -ItemType Directory -Force | Out-Null
+
 <#try {
     $packageId = "Microsoft.Direct3D.DirectStorage"
     $version   = "1.3.0"
