@@ -25,15 +25,45 @@ function Write-Exception {
 Write-Stage "Dirktide selection"
 
 do {
-    $dirktide = Read-Host "Enter Darktide install directory"
-    $dirktide = $dirktide.Trim('"')
-} while (-not (Test-Path $dirktide))
+    do {
+        $dirktide = Read-Host "Enter Darktide install directory"
+        $dirktide = $dirktide.Trim('"')
+    } while (-not (Test-Path $dirktide))
+
+    $win32Settings   = Join-Path $dirktide "bundle\application_settings\win32_settings.ini"
+    $settingsCommon  = Join-Path $dirktide "bundle\application_settings\settings_common.ini"
+    $binaries        = Join-Path $dirktide "binaries"
+
+    Write-Host "The script servitor will make changes to the following locations and files:" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "Game directory:" -ForegroundColor Cyan
+    Write-Host "  $dirktide"
+    Write-Host ""
+    Write-Host "Configuration files:" -ForegroundColor Cyan
+    Write-Host "  $settingsCommon"
+    Write-Host "  $win32Settings"
+    Write-Host ""
+    Write-Host "DLLs in:" -ForegroundColor Cyan
+    Write-Host "  $binaries"
+    Write-Host "    amd_fidelityfx_loader_dx12.dll"
+    Write-Host "    amd_fidelityfx_dx12.dll"
+    Write-Host "    amd_fidelityfx_denoiser_dx12.dll"
+    Write-Host "    amd_fidelityfx_framegeneration_dx12.dll"
+    Write-Host "    amd_fidelityfx_radiancecache_dx12.dll"
+    Write-Host "    amd_fidelityfx_upscaler_dx12.dll"
+    Write-Host "    dstorage.dll"
+    Write-Host "    dstoragecore.dll"
+    Write-Host ""
+    Write-Host "The script will download two archive files totalling at ~200MB to update said DLL's."
+    Write-Host ""
+
+    do {
+        $confirm = Read-Host "Continue with these changes? (Y/N)"
+    } until ($confirm -match '^[YyNn]$')
+
+} until ($confirm -match '^[Yy]$')
 
 Write-Ok "Using Darktide directory: $dirktide"
-
-$win32Settings   = Join-Path $dirktide "bundle\application_settings\win32_settings.ini"
-$settingsCommon  = Join-Path $dirktide "bundle\application_settings\settings_common.ini"
-$binaries        = Join-Path $dirktide "binaries"
 
 # ------------------------------------------------------------
 # STAGE 1: Backup config files
@@ -107,7 +137,7 @@ try {
 # ------------------------------------------------------------
 Write-Stage "Installing DirectStorage runtime"
 
-try {
+<#try {
     $packageId = "Microsoft.Direct3D.DirectStorage"
     $version   = "1.3.0"
     $tempDir   = Join-Path $env:TEMP "darktide_mods"
@@ -125,7 +155,8 @@ try {
     Write-Fail "DirectStorage install failed"
     Write-Exception $_
 }
-
+#>
+#As of writing this post-skiitari update, the provided DirectStorage version is up-to-date and 1.4.0. is not out yet.
 # ------------------------------------------------------------
 # STAGE 5: AMD FidelityFX SDK
 # ------------------------------------------------------------
@@ -136,7 +167,7 @@ try {
     $extractPath = Join-Path $tempDir "FidelityFX-SDK"
 
     Invoke-WebRequest `
-        "https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/archive/refs/tags/v2.1.0.zip" `
+        "https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/archive/refs/tags/v2.3.0.zip" `
         -OutFile $zipPath
 
     Expand-Archive $zipPath $extractPath -Force
@@ -184,6 +215,17 @@ try {
 
 # ------------------------------------------------------------
 Write-Stage "All stages completed"
-Write-Host "Script finished. Review messages above for any failures." -ForegroundColor White
+Write-Host "Script finished. Review messages above for any failures. If you experience crashes, you can verify game integrity to restore the dll's to their original versions." -ForegroundColor White
 Write-Host "Did you know that in a sprint, crouch, sliding and ranged focused game the DML's mod reload combo is CTRL+SHIFT+R? You should go to $dirktide\mods\base\mod_manager.lua and change local BUTTON_INDEX_R to a different key, like end or something. karking bellends" -ForegroundColor Yellow
 Remove-Item $tempDir -Recurse -Force
+    # 
+    if ($psISE)
+    {
+        Add-Type -AssemblyName System.Windows.Forms
+        [System.Windows.Forms.MessageBox]::Show("If you're seeing this, it's because you're runing from the Powershell ISE. Job's done!")
+    }
+    else
+    {
+        Write-Host "Press any key to continue..." -ForegroundColor White
+        $x = $host.ui.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    }
