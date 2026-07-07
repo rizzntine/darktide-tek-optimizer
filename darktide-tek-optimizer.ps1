@@ -149,7 +149,9 @@ New-Item $tempDir -ItemType Directory -Force | Out-Null
 
     New-Item $tempDir -ItemType Directory -Force | Out-Null
 
+    $ProgressPreference = 'SilentlyContinue'
     Invoke-WebRequest "https://www.nuget.org/api/v2/package/$packageId/$version" -OutFile $nupkgPath
+    $ProgressPreference = 'Continue'
     Expand-Archive $nupkgPath $extract -Force
 
     Copy-Item (Join-Path $extract "native\bin\x64\dstorage*.dll") $binaries -Force
@@ -169,9 +171,12 @@ try {
     $zipPath     = Join-Path $tempDir "FidelityFX-SDK.zip"
     $extractPath = Join-Path $tempDir "FidelityFX-SDK"
 
+    
+    $ProgressPreference = 'SilentlyContinue'
     Invoke-WebRequest `
         "https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/archive/refs/tags/v2.3.0.zip" `
         -OutFile $zipPath
+    $ProgressPreference = 'Continue'
 
     Expand-Archive $zipPath $extractPath -Force
 
