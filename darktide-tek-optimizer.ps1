@@ -211,7 +211,7 @@ try {
         if (Test-Path $dst) {
             Remove-Item $dst -Force
         }
-        Move-Item $src $dst
+        Copy-Item $src $dst
     }
 
 
